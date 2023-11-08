@@ -2,6 +2,7 @@ import os
 import re
 import sys
 
+# tenía razón.
 
 DIRECTORIO = os.path.expanduser("./")
 sys.path.append(DIRECTORIO)
