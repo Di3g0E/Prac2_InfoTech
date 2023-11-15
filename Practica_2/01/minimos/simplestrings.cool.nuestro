@@ -1,2 +1,21 @@
 #name "simplestrings.cool"
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
  ELSE
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true

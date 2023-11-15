@@ -27,10 +27,34 @@ class CoolLexer(Lexer):
     def spaces(self, t):
         pass
 
+
     @_(r'\n+')
     def newline(self, t):
         self.lineno += t.value.count('\n')
 
+    @_(r'[a-z][A-Za-z0-9]*')
+    def BOOL_CONST(self, t):
+        t.value = True
+        return t
+
+    @_(r'[A-Z][A-Za-z0-9]*')
+    def TYPEID(self, t):
+        keywords = {"NOT", "ELSE", "IN"}
+        if t.value.upper() in keywords:
+            t.type = t.value.upper()
+        return t
+
+    @_(r'[a-z][A-Za-z0-9]*')
+    def OBJECTID(self, t):
+        keywords = {"NOT", "ELSE", "IN"}
+        if t.value.upper() in keywords:
+            t.type = t.value.upper()
+        return t
+
+
+    @_(r'\(\*([^*]|\*[^)])\*\)')
+    def comentariomulti(self, t):
+        self.lineno += t.value.count('\n')
     
     def error(self, t):
         self.index += 1

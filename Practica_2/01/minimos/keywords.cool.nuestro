@@ -1,2 +1,20 @@
 #name "keywords.cool"
+ BOOL_CONST true
+ TYPEID CLASS
  ELSE
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID FI
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID IsvoiD
+ BOOL_CONST true
+ TYPEID LOOp
+ BOOL_CONST true
+ NOT
+ BOOL_CONST true
+ TYPEID PoOl
+ TYPEID ThEn
+ BOOL_CONST true

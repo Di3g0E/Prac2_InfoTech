@@ -1,1 +1,19 @@
 #name "s25.test.cool"
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID ID
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID IDIDd
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID Mytype
+ TYPEID MYTYPE
+ TYPEID Type
+ TYPEID T3432
+ BOOL_CONST true
+ BOOL_CONST true

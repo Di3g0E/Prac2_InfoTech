@@ -1,1 +1,24 @@
 #name "badkeywords.cool"
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID False
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID Oid
+ TYPEID Loopnew
+ TYPEID NOte
+ BOOL_CONST true
+ TYPEID PO8ol
+ TYPEID THEN
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID IFIF
+ BOOL_CONST true

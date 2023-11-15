@@ -1,5 +1,7 @@
-#name "s14.test.cool"
+#name "s03.test.cool"
  BOOL_CONST true
  BOOL_CONST true
+ BOOL_CONST true
+ TYPEID EOF
  BOOL_CONST true
  BOOL_CONST true

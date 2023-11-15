@@ -1,1 +1,24 @@
 #name "stringcomment.cool"
+ TYPEID This
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ TYPEID This
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
+ BOOL_CONST true
