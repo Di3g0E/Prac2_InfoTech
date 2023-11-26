@@ -32,13 +32,14 @@ class CoolLexer(Lexer):
     def LE(self, t):
         return t
 
-    @_(r'(t[rR][uU][eE]\b|f[aA][lL][sS][eE]\b)')
+    @_(r'(t[rR][uU][eE]\b)|(f[aA][lL][sS][eE]\b)')
     def BOOL_CONST(self, t):
-        if t.value.lower() == 'true':
-            t.value = 'true'
-        elif t.value.lower() == 'false':
-            t.value = 'false'
+        if t.value.lower() == "true":
+            t.value = True
+        else:
+            t.value = False
         return t
+
 
     @_(r'"([^"]*)"')
     def STR_CONST(self, t):
