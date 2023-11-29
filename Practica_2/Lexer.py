@@ -43,6 +43,7 @@ class CoolLexer(Lexer):
 
     @_(r'"([^"]*)"')
     def STR_CONST(self, t):
+        t.value = t.value.replace('\t', '\\t')
         return t
 
     @_(r'[0-9][0-9]*')
