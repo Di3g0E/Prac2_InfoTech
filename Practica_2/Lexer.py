@@ -20,8 +20,6 @@ class CoolLexer(Lexer):
                           for i in ['0', '1']
                           for j in range(16)] + [bytes.fromhex(hex(127)[-2:]).decode("ascii")]
 
-
-
     @_(r'(<-|->)')
     def ASSIGN(self, t):
         return t
@@ -45,7 +43,7 @@ class CoolLexer(Lexer):
 
     @_(r'"([^"]*)"')
     def STR_CONST(self, t):
-        t.value = t.value.replace(" ", 'p')   # Debería sustituir tabulaciones por 'p'
+        t.value = t.value.replace('\t', '\\t')
         return t
 
     @_(r'[0-9][0-9]*')
