@@ -75,11 +75,45 @@ class CoolParser(Parser):
     def formal(self, p):
         return Formal(nombre_variable=p.OBJECTID, tipo=p.TYPEID)
 
-    @_("expresiones '+' expresiones", "expresiones expresion", " ")
-    def expresiones(self, p):
-        pass #return p.expresiones+[p.expresion]
 
-    @_("OBJECTID ASSIGN")
+    @_("expresiones expresion")
+    def expresiones(self, p):
+        return p.expresiones + [p.expresion]
+
+
+    @_("expresion")
+    def expresiones(self, p):
+        return p.expresion
+
+
+    @_("OBJECTID ASSIGN",
+       "expresion '+' expresion",
+       "expresion '-' expresion",
+       "expresion '*' expresion",
+       "expresion '/' expresion",
+       "expresion '<' expresion",
+       "expresion LE expresion",
+       "expresion '=' expresion",
+       "'(' expresion ')'",
+       "NOT expresion",
+       "ISVOID expresion",
+       "'~' expresion",
+       "expresion '@' TYPEID '.' OBJECTID '(' ')'",
+       "expresion '@' TYPEID '.' OBJECTID '(' expresiones ',' expresion ')'",
+       "expresion '.' OBJECTID '(' expresiones ',' expresion ')' expresion",
+       "OBJECTID '(' expresion ',' expresion ')' expresion",
+       "expresion '.' OBJECTID '(' ')'",
+       "OBJECTID '(' ')'",
+       "IF expresion THEN expresion ELSE expresion FI",
+       "WHILE expresion LOOP expresion  POOL",
+       "LET OBJECTID ':' TYPEID ASSIGN expresion ',' OBJECTID ':' TYPEID ASSIGN expresiones IN expresion",
+       "CASE expresion OF '(' OBJECTID ':' TYPEID DARROW expresiones ')' ';' ESAC",
+       "NEW TYPEID",
+       "'{' expresiones ';' '}'",
+       "INT_CONST",
+       "STR_CONST",
+       "BOOL_CONST",
+       "expresion expresion")
     def expresion(self, p):
         pass #return Expresion(cast=p.ASSING)
 
@@ -93,9 +127,9 @@ class CoolParser(Parser):
 
 
 
-    @_('atributo ":" tipo OBK ";"')
-    def let(self, p):
-        pass #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
+    #@_('atributo ":" tipo OBK ";"')
+    #def let(self, p):
+    #    pass #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
 
     #@_('in objeto "}"";"')
     #def objeto(self, p):
