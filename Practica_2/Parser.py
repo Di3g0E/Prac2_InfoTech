@@ -13,14 +13,11 @@ class CoolParser(Parser):
     debugfile = "salida.out"
     errores = []
 
-    #@_("CLASS OBJECTID")
-    #def Programa(self, p):
-    #    pass
-
 
     @_('clases')
     def Programa(self, p):
         return Programa(secuencia=p.clases)
+
 
     @_('clase', 'clases clase')
     def clases(self, p):
@@ -29,29 +26,52 @@ class CoolParser(Parser):
         else:
             return [p.clase]
 
-    @_('CLASS TYPEID "{" atributos "}" ";"')
+
+    @_('CLASS TYPEID "{" atributos "}" ";"', 'CLASS TYPEID "{" metodos "}" ";"')
     def clase(self, p):
         return Clase(nombre=p.TYPEID, padre="OBJECT", nombre_fichero=self.nombre_fichero, caracteristicas=p.atributos)
 
-    #@_('expresion"()" ":" expresion')
-    #def method(self, p):
-    #    return Metodo(formales=p.expresion)
-
-    #@_('atributo ":" tipo object ";"')
-    #def let(self, p):
-    #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
 
     @_("atributos atributo") # Esta función y la siguiente es lo mismo que un 'or' aunque también se pueden separar por ','
     def atributos(self, p):
         return p.atributos+[p.atributo]
 
+
     @_(" ")
     def atributos(self, p):
         return []
 
+
     @_("OBJECTID ':' TYPEID ';'")
     def atributo(self, p):
         return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=NoExpr())
+
+
+    @_('metodos metodo', ' ')
+    def metodos(self, p):
+        pass # return Metodo(formales=p.expresion)
+
+
+    @_('OBJECTID "(" ")" ":" TYPEID "{" expresiones "}" ";"', 'OBJECTID "(" formales')
+    def metodo(self, p):
+        pass # return Metodo(formales=p.expresion)
+
+    @_('OBJECTID ":" TYPEID')
+    def formal(self, p):
+        pass
+
+    @_("expresiones + expresiones", "expresiones expresion", " ")
+    def expresiones(self, p):
+        return p.expresiones+[p.expresion]
+
+    @_("OBJECTID ASSIGN")
+    def expresion(self, p):
+        return Expresion(cast=p.ASSING)
+
+
+    #@_('atributo ":" tipo object ";"')
+    #def let(self, p):
+    #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
 
     #@_('in objeto "}"";"')
     #def objeto(self, p):
