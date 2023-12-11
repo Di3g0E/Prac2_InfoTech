@@ -47,31 +47,55 @@ class CoolParser(Parser):
         return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=NoExpr())
 
 
-    @_('metodos metodo', ' ')
+    @_('metodos metodo')
     def metodos(self, p):
-        pass # return Metodo(formales=p.expresion)
+        return p.metodos+[p.metodo]
+
+    @_(' ')
+    def metodos(self, p):
+        return []
 
 
-    @_('OBJECTID "(" ")" ":" TYPEID "{" expresiones "}" ";"', 'OBJECTID "(" formales')
+    @_('OBJECTID "(" ")" ":" TYPEID "{" expresiones "}" ";"', 'OBJECTID "(" formales "," formales ")" ":" TYPEID "{" expresiones "}" ')
     def metodo(self, p):
-        pass # return Metodo(formales=p.expresion)
+        return Metodo(formales=p.formales)
+
+
+    @_('formales formal')
+    def formales(self, p):
+        return p.formales+[p.formal]
+
+
+    @_(' ')
+    def formales(self, p):
+        return []
+
 
     @_('OBJECTID ":" TYPEID')
     def formal(self, p):
-        pass
+        return Formal(nombre_variable=p.OBJECTID, tipo=p.TYPEID)
 
-    @_("expresiones + expresiones", "expresiones expresion", " ")
+    @_("expresiones '+' expresiones", "expresiones expresion", " ")
     def expresiones(self, p):
-        return p.expresiones+[p.expresion]
+        pass #return p.expresiones+[p.expresion]
 
     @_("OBJECTID ASSIGN")
     def expresion(self, p):
-        return Expresion(cast=p.ASSING)
+        pass #return Expresion(cast=p.ASSING)
 
 
-    #@_('atributo ":" tipo object ";"')
-    #def let(self, p):
-    #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
+    @_("NOT")
+    def negacion(self, p):
+        return Not(expr=p, operator="NOT")
+
+
+
+
+
+
+    @_('atributo ":" tipo OBK ";"')
+    def let(self, p):
+        pass #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
 
     #@_('in objeto "}"";"')
     #def objeto(self, p):
