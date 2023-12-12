@@ -123,14 +123,54 @@ class CoolParser(Parser):
         return Not(expr=p, operator="NOT")
 
 
-
-
-
-
-    #@_('atributo ":" tipo OBK ";"')
-    #def let(self, p):
-    #    pass #    return Let(nombre=p.atributo, tipo=p.tipo, inicializacion=':', cuerpo=p.object)
+    @_('LET OBJECTID ":" TYPEID ","')
+    def let(self, p):
+        return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion='let' , cuerpo=':')
 
     #@_('in objeto "}"";"')
     #def objeto(self, p):
     #    return Objeto(nombre=p.objeto)
+
+    @_('OBJECTID "+" OBJECTID')
+    def suma(self, p):
+        return Suma(operando='+')
+
+
+    @_('OBJECTID "-" OBJECTID')
+    def resta(self, p):
+        return Resta(operando='+')
+
+
+    @_('OBJECTID "*" OBJECTID')
+    def multiplicacion(self, p):
+        return Multiplicacion(operando='+')
+
+
+    @_('OBJECTID "/" OBJECTID')
+    def division(self, p):
+        return Division(operando='/')
+
+
+    @_('OBJECTID "<" OBJECTID')
+    def menor(self, p):
+        return Menor(operando='<')
+
+
+    @_('OBJECTID LE OBJECTID')
+    def leigual(self, p):
+        return LeIgual(operando=p.LE)
+
+
+    @_('"~" OBJECTID ";"')
+    def neg(self, p):
+        return Neg(expr=p.OBJECTID, operador="~")
+
+
+    @_('NOT OBJECTID ";"')
+    def not_def(self, p):
+        return Not(expr=p.OBJECTID, operador=p.NOT)
+
+
+    @_('OBJECTID ";"')
+    def objeto(self, p):
+        return Objeto(nombre=p.OBJECTID)
