@@ -12,6 +12,14 @@ class CoolParser(Parser):
     tokens = CoolLexer.tokens
     debugfile = "salida.out"
     errores = []
+    precedence = (
+        ('nonassoc', '.'),
+        ('nonassoc', '@'),
+        ('left', ISVOID, '*', '/', '+', '-'),
+        ('nonassoc', LE, '<', '=', NOT),
+        ('right', ASSIGN)
+    )
+
 
 
     @_('clases')
@@ -31,6 +39,11 @@ class CoolParser(Parser):
     def clase(self, p):
         return Clase(nombre=p.TYPEID, padre="OBJECT", nombre_fichero=self.nombre_fichero, caracteristicas=p.atributos)
 
+    @_('CLASS TYPEID INHERITS TYPEID "{" atributos "}" ";"', 'CLASS TYPEID "{" metodos "}" ";"')
+    def clase(self, p):
+        pass #return Clase(nombre=p.TYPEID, padre="OBJECT", nombre_fichero=self.nombre_fichero, caracteristicas=p.atributos)
+
+
 
     @_("atributos atributo") # Esta función y la siguiente es lo mismo que un 'or' aunque también se pueden separar por ','
     def atributos(self, p):
@@ -42,9 +55,9 @@ class CoolParser(Parser):
         return []
 
 
-    @_("OBJECTID ':' TYPEID ';'")
-    def atributo(self, p):
-        return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=NoExpr())
+    #@_("OBJECTID ':' TYPEID ';'")
+    #def atributo(self, p):
+    #    return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=NoExpr())
 
 
     @_('metodos metodo')
@@ -56,7 +69,7 @@ class CoolParser(Parser):
         return []
 
 
-    @_('OBJECTID "(" ")" ":" TYPEID "{" expresiones "}" ";"', 'OBJECTID "(" formales "," formales ")" ":" TYPEID "{" expresiones "}" ')
+    @_('OBJECTID "(" ")" ":" TYPEID "{" expresion "}" ";"', 'OBJECTID "(" formales "," formales ")" ":" TYPEID "{" expresiones "}" ')
     def metodo(self, p):
         return Metodo(formales=p.formales)
 
@@ -76,101 +89,142 @@ class CoolParser(Parser):
         return Formal(nombre_variable=p.OBJECTID, tipo=p.TYPEID)
 
 
-    @_("expresiones expresion")
-    def expresiones(self, p):
-        return p.expresiones + [p.expresion]
 
 
-    @_("expresion")
+
+
+
+    @_('expresiones expresion')
     def expresiones(self, p):
+        return p.expresiones+[p.expresion]
+
+    @_(' ')
+    def expresiones(self, p):
+        return []
+
+
+
+
+
+    @_('ASSIGN expresion', ' ')
+    def assign_exp(self, p):
+        if len(p) == 1:
+            return "ASSIGN expresion"
+        else:
+            return ' '
+
+    @_(' ', 'OBJECTID ":" TYPEID', 'OBJECTID ":" TYPEID assign_exp', 'let_rep "," let_rep')
+    def let_rep(self, p):
+        pass
+
+
+
+
+
+    @_('expresiones expresion')
+    def expresionas(self, p):
+        return p.expresiones + p.expresion
+
+    @_(' ')
+    def expresionas(self, p):
         return p.expresion
 
 
-    @_("OBJECTID ASSIGN",
-       "expresion '+' expresion",
-       "expresion '-' expresion",
-       "expresion '*' expresion",
-       "expresion '/' expresion",
-       "expresion '<' expresion",
-       "expresion LE expresion",
-       "expresion '=' expresion",
-       "'(' expresion ')'",
-       "NOT expresion",
-       "ISVOID expresion",
-       "'~' expresion",
-       "expresion '@' TYPEID '.' OBJECTID '(' ')'",
-       "expresion '@' TYPEID '.' OBJECTID '(' expresiones ',' expresion ')'",
-       "expresion '.' OBJECTID '(' expresiones ',' expresion ')' expresion",
-       "OBJECTID '(' expresion ',' expresion ')' expresion",
-       "expresion '.' OBJECTID '(' ')'",
-       "OBJECTID '(' ')'",
-       "IF expresion THEN expresion ELSE expresion FI",
-       "WHILE expresion LOOP expresion  POOL",
-       "LET OBJECTID ':' TYPEID ASSIGN expresion ',' OBJECTID ':' TYPEID ASSIGN expresiones IN expresion",
-       "CASE expresion OF '(' OBJECTID ':' TYPEID DARROW expresiones ')' ';' ESAC",
-       "NEW TYPEID",
-       "'{' expresiones ';' '}'",
-       "INT_CONST",
-       "STR_CONST",
-       "BOOL_CONST",
-       "expresion expresion")
+
+
+
+    @_('OBJECTID ASSIGN expresion')
     def expresion(self, p):
-        pass #return Expresion(cast=p.ASSING)
+        pass
 
+    @_('expresion "+" expresion')
+    def expresion(self, p):
+        pass
 
-    @_("NOT")
-    def negacion(self, p):
-        return Not(expr=p, operator="NOT")
+    @_('expresion "-" expresion')
+    def expresion(self, p):
+        pass
 
+    @_('expresion "*" expresion')
+    def expresion(self, p):
+        pass
 
-    @_('LET OBJECTID ":" TYPEID ","')
-    def let(self, p):
-        return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion='let' , cuerpo=':')
+    @_('expresion "/" expresion')
+    def expresion(self, p):
+        pass
 
-    #@_('in objeto "}"";"')
-    #def objeto(self, p):
-    #    return Objeto(nombre=p.objeto)
+    @_('expresion "<" expresion')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID "+" OBJECTID')
-    def suma(self, p):
-        return Suma(operando='+')
+    @_('expresion LE expresion')
+    def expresion(self, p):
+        pass
 
+    @_('expresion "=" expresion')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID "-" OBJECTID')
-    def resta(self, p):
-        return Resta(operando='+')
+    @_('"(" expresion ")"')
+    def expresion(self, p):
+        pass
 
+    @_('NOT expresion')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID "*" OBJECTID')
-    def multiplicacion(self, p):
-        return Multiplicacion(operando='+')
+    @_('ISVOID expresion')
+    def expresion(self, p):
+        pass
 
+    @_('"~" expresion')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID "/" OBJECTID')
-    def division(self, p):
-        return Division(operando='/')
+    @_('expresion "@" TYPEID "." OBJECTID "(" ")"')
+    def expresion(self, p):
+        pass
 
+    @_('expresion "@" TYPEID "." OBJECTID "(" expresiones "," expresion ")"')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID "<" OBJECTID')
-    def menor(self, p):
-        return Menor(operando='<')
+    @_('IF expresion THEN expresion ELSE expresion FI')
+    def expresion(self, p):
+        pass
 
+    @_('WHILE expresion LOOP expresion POOL')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID LE OBJECTID')
-    def leigual(self, p):
-        return LeIgual(operando=p.LE)
+    @_('LET OBJECTID ":" TYPEID assign_exp let_rep IN expresion', )
+    def expresion(self, p):
+        pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion='let', cuerpo=':')
 
+    @_('CASE expresion OF "(" OBJECTID ":" TYPEID DARROW expresionas ")" ";" ESAC')
+    def expresion(self, p):
+        pass
 
-    @_('"~" OBJECTID ";"')
-    def neg(self, p):
-        return Neg(expr=p.OBJECTID, operador="~")
+    @_('NEW TYPEID')
+    def expresion(self, p):
+        pass
 
+    @_('"{" "(" expresionas ";" ")" "}"')
+    def expresion(self, p):
+        pass
 
-    @_('NOT OBJECTID ";"')
-    def not_def(self, p):
-        return Not(expr=p.OBJECTID, operador=p.NOT)
+    @_('OBJECTID')
+    def expresion(self, p):
+        pass
 
+    @_('INT_CONST')
+    def expresion(self, p):
+        pass
 
-    @_('OBJECTID ";"')
-    def objeto(self, p):
-        return Objeto(nombre=p.OBJECTID)
+    @_('STR_CONST')
+    def expresion(self, p):
+        pass
+
+    @_('BOOL_CONST')
+    def expresion(self, p):
+        pass
