@@ -52,6 +52,7 @@ class CoolLexer(Lexer):
     @_(r'"([^"]*)"')
     def STR_CONST(self, t):
         t.value = t.value.replace('\t', '\\t')
+        t.value = t.value.replace('\n', '\\n') # Necesitamos hacer un retorno de carro pero t.value = t.value.replace('\n', '\r\\n') no funciona
         return t
 
     @_(r'\d+')
