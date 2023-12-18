@@ -11,15 +11,15 @@ class CoolParser(Parser):
     tokens = CoolLexer.tokens
     debugfile = "salida.out"
     errores = []
-    precedence = (
+    precedence = ( # Copie su precedencia
         ('right', 'ASSIGN'),
-        ('nonassoc', 'LE', '<', '=', 'NOT'),
-        ('left', 'ISVOID', '*', '/', '+', '-'),
-        ('nonassoc', '@'),
-        ('nonassoc', '.')
+        ('nonassoc', 'NOT'),
+        ('nonassoc', 'LE', '<', '='),
+        ('left', '+', "-"),
+        ('left', '~', '*', '/', 'ISVOID'),
+        ('left', '@'),
+        ('left', '.')
     )
-
-
 
     @_('clases')
     def Programa(self, p):
@@ -48,7 +48,7 @@ class CoolParser(Parser):
     def clase(self, p):
         return Clase(nombre=p.TYPEID0, padre=p.TYPEID1, nombre_fichero=self.nombre_fichero, caracteristicas=p.metodos)
 
-    @_("atributos atributo")  # Esta función y la siguiente es lo mismo que un 'or' aunque también se pueden separar por ','
+    @_("atributos atributo")
     def atributos(self, p):
         return p.atributos + [p.atributo]
 
@@ -64,7 +64,7 @@ class CoolParser(Parser):
     def atributo(self, p):
         return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)
 
-    @_('metodos metodo', ' ')
+    @_('metodos metodo', ' ') # Esta no la tienen
     def metodos(self, p):
         if len(p) == 2:
             return p.metodos + [p.metodo]
@@ -77,7 +77,7 @@ class CoolParser(Parser):
 
     @_('OBJECTID "(" formales formal ")" ":" TYPEID "{" expresion "}" ";"')
     def metodo(self, p):
-        return Metodo(nombre=p.OBJECTID, formales=p.formales+[p.formal], tipo=p.TYPEID, cuerpo=p.expresion)
+        return Metodo(nombre=p.OBJECTID, formales=p.formales, tipo=p.TYPEID, cuerpo=p.expresion)
 
     @_('formales formal ","')
     def formales(self, p):
@@ -98,11 +98,11 @@ class CoolParser(Parser):
        'expresion "<" expresion',
        'expresion LE expresion',
        'expresion "=" expresion',
-       '"(" expresion ")"',
+     #  '"(" expresion ")"',
        '"~" expresion')
     def expresion(self, p):
         if p[1] == '+':
-            return Suma(izquierda=p.expresion0, derecha=p.expresion1, operando='+')
+            return Suma(izquierda=p.expresion0, derecha=p.expresion1, operando='+') # No ponen operando en ninguna
         elif p[1] == '-':
             return Resta(izquierda=p.expresion0, derecha=p.expresion1, operando='-')
         elif p[1] == '*':
@@ -115,10 +115,19 @@ class CoolParser(Parser):
             return LeIgual(izquierda=p.expresion0, derecha=p.expresion1, operando='<=')
         elif p[1] == '=':
             return Igual(izquierda=p.expresion0, derecha=p.expresion1, operando='=')
-        elif p[0] == '(' and p[2] == ')':
-            pass
+        #elif p[0] == '(' and p[2] == ')':
+        #   pass
         elif p[0] == '~':
             return Neg(expr=p.expresion, operador='~')
+
+
+    @_('"(" expresion ")"') # Esta es como tienen el de arriba comentado
+    def expresion(self, p):
+        return p.expresion
+
+    @_('OBJECTID ASSIGN expresion') # Esta no la teníamos
+    def expresion(self, p):
+        return Asignacion(nombre=p.OBJECTID, cuerpo=p.expresion)
 
     @_('expresion "@" TYPEID "." OBJECTID "(" ")"')
     def expresion(self, p):
@@ -160,43 +169,82 @@ class CoolParser(Parser):
     def expresion(self, p):
         return Bucle(condicion=p.expresion0, cuerpo=p.expresion1)
 
-    @_(' ')
-    def let_rep(self, p):
-        pass
 
-    @_('OBJECTID ":" TYPEID')
-    def let_rep(self, p):
-        pass
 
-    @_('OBJECTID ":" TYPEID ASSIGN expresion')
-    def let_rep(self, p):
-        pass
+# Su let
+    @_('OBJECTID ":" TYPEID opt_assign')
+    def let_declaration(self, p):
+        return (p.OBJECTID, p.TYPEID, p.opt_assign)
 
-    @_('let_rep OBJECTID ":" TYPEID ","')
-    def let_rep(self, p):
-        pass
+    @_('let_declaration')
+    def let_declarations(self, p):
+        return [p.let_declaration]
 
-    @_('let_rep OBJECTID ":" TYPEID ASSIGN expresion ","')
-    def let_rep(self, p):
-        pass
+    @_('let_declarations "," let_declaration')
+    def let_declarations(self, p):
+        return p.let_declarations + [p.let_declaration]
 
-    @_('LET OBJECTID ":" TYPEID let_rep IN expresion')
+    @_('LET let_declarations IN expresion')
     def expresion(self, p):
-        pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
+        cuerpo = p.expresion
+        for nombre, tipo, inicializacion in reversed(p.let_declarations):
+            cuerpo = Let(nombre=nombre, tipo=tipo, inicializacion=inicializacion, cuerpo=cuerpo)
+        return cuerpo
 
-    @_('LET OBJECTID ":" TYPEID ASSIGN expresion let_rep IN expresion')
-    def expresion(self, p):
-        pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
 
-    @_('OBJECTID ":" TYPEID DARROW expresion')
+
+
+    @_('ASSIGN expresion')
+    def opt_assign(self, p):
+        return p.expresion
+
+    @_('')
+    def opt_assign(self, p):
+        return NoExpr()
+
+
+
+#    @_(' ')
+#    def let_rep(self, p):
+#       pass
+
+#    @_('OBJECTID ":" TYPEID')
+#    def let_rep(self, p):
+#        pass
+
+#    @_('OBJECTID ":" TYPEID ASSIGN expresion')
+#    def let_rep(self, p):
+#       pass
+
+#    @_('let_rep OBJECTID ":" TYPEID ","')
+#    def let_rep(self, p):
+#       pass
+
+#    @_('let_rep OBJECTID ":" TYPEID ASSIGN expresion ","')
+#    def let_rep(self, p):
+#        pass
+
+#    @_('LET OBJECTID ":" TYPEID let_rep IN expresion')
+#    def expresion(self, p):
+#       pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
+
+#    @_('LET OBJECTID ":" TYPEID ASSIGN expresion let_rep IN expresion')
+#   def expresion(self, p):
+#        pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
+
+
+
+
+
+    @_('OBJECTID ":" TYPEID DARROW expresion ";"') # Metí los ; dentro.
     def case_rep(self, p):
         return RamaCase(nombre_variable=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)
 
-    @_('case_rep OBJECTID ":" TYPEID DARROW expresion')
+    @_('case_rep OBJECTID ":" TYPEID DARROW expresion ";"')
     def case_rep(self, p):
         return p.case_rep + [RamaCase(nombre_variable=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)]
 
-    @_('CASE expresion OF case_rep ";" ESAC')
+    @_('CASE expresion OF case_rep ESAC')
     def expresion(self, p):
         return Swicht(expr=p.expresion, casos=p.case_rep)
 
@@ -234,3 +282,10 @@ class CoolParser(Parser):
             return String(valor=p.STR_CONST)
         elif p[0] == 'BOOL_CONST':
             return Booleano(valor=p.BOOL_CONST)
+
+
+    def error(self, p):
+        if p:
+            err_location = f'"{self.nombre_fichero}", line {p.lineno}'
+            err_msg = f'syntax error at or near {p.type} = {p.value}'
+            self.errores.append(f'{err_location}:{err_msg}')
