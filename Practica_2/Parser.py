@@ -71,20 +71,21 @@ class CoolParser(Parser):
         else:
             return []
 
-    @_('formales_opt "," formal',
-       'formal', ' ')
-    def formales_opt(self, p):
-        if len(p) == 3:
-            return p.formales_opt + p.formal
-        elif len(p) == 1:
-            return p.formal
-        else:
-            return None
+    @_('formales "," formal')
+    def formales(self, p):
+        return p.formales + [p.formal]
 
-    @_('OBJECTID "(" formales_opt ")" ":" TYPEID "{" expresiones "}" ";"')
+    @_('formal')
+    def formales(self, p):
+        return [p.formal]
+
+    @_('OBJECTID "(" formales ")" ":" TYPEID "{" expresion "}" ";"')
     def metodo(self, p):
-        formales = p.formales_opt if p.formales_opt else []
-        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=formales, tipo=p.TYPEID, cuerpo=p.expresiones)
+        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=p.formales, tipo=p.TYPEID, cuerpo=p.expresiones)
+
+    @_('OBJECTID "(" ")" ":" TYPEID "{" expresion "}" ";"')
+    def metodo(self, p):
+        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=[], tipo=p.TYPEID, cuerpo=p.expresiones)
 
     @_('OBJECTID ":" TYPEID')
     def formal(self, p):
@@ -128,17 +129,13 @@ class CoolParser(Parser):
         elif p[1] == '(':
             return p.expresion
 
-    @_('expresion "@" TYPEID "." OBJECTID "(" ")"',
-       'expresion "@" TYPEID "." OBJECTID "(" expresiones ")"')
+    @_('expresion "@" TYPEID "." OBJECTID "(" ")"')
     def expresion(self, p):
-        if len(p) == 7:
-            return LlamadaMetodoEstatico(
-                cuerpo=p.expresion, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=[]
-            )
-        else:
-            return LlamadaMetodoEstatico(
-                cuerpo=p.expresion, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=p.expresiones
-            )
+        return LlamadaMetodoEstatico(cuerpo=p.expresion, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=[])
+
+    @_('expresion "@" TYPEID "." OBJECTID "(" expresiones ")"')
+    def expresion(self, p):
+        return LlamadaMetodoEstatico(cuerpo=p.expresion, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=p.expresiones)
 
     @_('expresion "."', ' ')
     def expr_opc1(self, p):
