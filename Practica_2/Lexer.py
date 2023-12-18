@@ -20,6 +20,14 @@ class CoolLexer(Lexer):
                           for i in ['0', '1']
                           for j in range(16)] + [bytes.fromhex(hex(127)[-2:]).decode("ascii")]
 
+    #@_(r'\(')
+    #def LPAREN(self, t):
+    #    return t
+
+    #@_(r'\)')
+    #def RPAREN(self, t):
+    #    return t
+
     @_(r'(<-|->)')
     def ASSIGN(self, t):
         return t

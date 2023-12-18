@@ -1,14 +1,11 @@
 _program
   _class
-    Goodbye
+    Foo
     Object
-    "letassociativity.test"
+    "addedlet.test"
     (
     _method
-      help
-      _formal
-        a
-        Int
+      bar
       Int
       _let
         a
@@ -16,11 +13,17 @@ _program
         _no_expr
         : _no_type
         _plus
-          _int
-            6
+          _object
+            a
           : _no_type
-          _int
-            7
+          _let
+            b
+            String
+            _no_expr
+            : _no_type
+            _object
+              b
+            : _no_type
           : _no_type
         : _no_type
       : _no_type

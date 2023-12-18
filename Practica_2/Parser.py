@@ -1,4 +1,4 @@
-# Parser
+
 
 from Lexer import CoolLexer
 from sly import Parser
@@ -19,6 +19,8 @@ class CoolParser(Parser):
         ('right', 'ASSIGN')
     )
 
+
+
     @_('clases')
     def Programa(self, p):
         return Programa(secuencia=p.clases)
@@ -30,9 +32,13 @@ class CoolParser(Parser):
         else:
             return [p.clase]
 
-    @_('CLASS TYPEID "{" atributos "}" ";"', 'CLASS TYPEID "{" metodos "}" ";"')
+    @_('CLASS TYPEID "{" atributos "}" ";"')
     def clase(self, p):
         return Clase(nombre=p.TYPEID, padre="OBJECT", nombre_fichero=self.nombre_fichero, caracteristicas=p.atributos)
+
+    @_('CLASS TYPEID "{" metodos "}" ";"')
+    def clase(self, p):
+        return Clase(nombre=p.TYPEID, padre="OBJECT", nombre_fichero=self.nombre_fichero, caracteristicas=p.metodos)
 
     @_('CLASS TYPEID INHERITS TYPEID "{" atributos "}" ";"')
     def clase(self, p):
@@ -50,13 +56,13 @@ class CoolParser(Parser):
     def atributos(self, p):
         return []
 
-    @_('OBJECTID ":" TYPEID',
-       'OBJECTID ":" TYPEID ASSIGN expresion')
+    @_('OBJECTID ":" TYPEID ";"')
     def atributo(self, p):
-        nombre = p.OBJECTID
-        tipo = p.TYPEID
-        inicializacion = p.expresion if len(p) == 5 else None
-        return Atributo(linea=p.lineno, nombre=nombre, tipo=tipo, cuerpo=inicializacion)
+        return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=NoExpr())
+
+    @_('OBJECTID ":" TYPEID ASSIGN expresion ";"')
+    def atributo(self, p):
+        return Atributo(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)
 
     @_('metodos metodo', ' ')
     def metodos(self, p):
