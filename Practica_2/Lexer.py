@@ -10,7 +10,7 @@ class CoolLexer(Lexer):
     tokens = {OBJECTID, INT_CONST, BOOL_CONST, TYPEID,
               ELSE, IF, FI, THEN, NOT, IN, CASE, ESAC, CLASS,
               INHERITS, ISVOID, LET, LOOP, NEW, OF,
-              POOL, THEN, WHILE, NUMBER, STR_CONST, LE, DARROW, ASSIGN}
+              POOL, THEN, WHILE, STR_CONST, LE, DARROW, ASSIGN}
     # ignore = '\t '
     literals = {'(', '*', ')', ';', '{', '}', '=', ':', '.', ',', '~', '-', '/', '<', '@', '+'}
     # Ejemplo
@@ -54,7 +54,7 @@ class CoolLexer(Lexer):
         t.value = t.value.replace('\t', '\\t')
         return t
 
-    @_(r'[0-9][0-9]*')
+    @_(r'\d+')
     def INT_CONST(self, t):
         return t
 
@@ -88,6 +88,39 @@ class CoolLexer(Lexer):
 
     def error(self, t):
         self.index += 1
+    @_('_|\*\)|\!|\#|\$|\%|\^|\&|\>|\?|\`|\[|\[|\]|\||\\\\|EOF')
+    def ERROR(self, t):
+        if t.value == '_':
+            t.value = '"_"'
+        if t.value == '!':
+            t.value = '"!"'
+        if t.value == '#':
+            t.value = '"#"'
+        if t.value == '$':
+            t.value = '"$"'
+        if t.value == '%':
+            t.value = '"%"'
+        if t.value == '^':
+            t.value = '"^"'
+        if t.value == '&':
+            t.value = '"&"'
+        if t.value == '>':
+            t.value = '">"'
+        if t.value == '?':
+            t.value = '"?"'
+        if t.value == '`':
+            t.value = '"`"'
+        if t.value == '[':
+            t.value = '"["'
+        if t.value == ']':
+            t.value = '"]"'
+        if t.value == '|':
+            t.value = '"|"'
+        if t.value == '\\':
+            t.value = '"\\\\"'
+        elif t.value == '*)':
+            t.value = '"Unmatched *)"'
+        return t
 
     def salida(self, texto):
         lexer = CoolLexer()

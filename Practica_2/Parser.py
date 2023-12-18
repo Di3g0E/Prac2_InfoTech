@@ -71,11 +71,6 @@ class CoolParser(Parser):
         else:
             return []
 
-    @_('OBJECTID "(" formales_opt ")" ":" TYPEID "{" expresiones "}" ";"')
-    def metodo(self, p):
-        formales = p.formales_opt if p.formales_opt else []
-        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=formales, tipo=p.TYPEID, cuerpo=p.expresiones)
-
     @_('formales_opt "," formal',
        'formal', ' ')
     def formales_opt(self, p):
@@ -85,6 +80,11 @@ class CoolParser(Parser):
             return p.formal
         else:
             return None
+
+    @_('OBJECTID "(" formales_opt ")" ":" TYPEID "{" expresiones "}" ";"')
+    def metodo(self, p):
+        formales = p.formales_opt if p.formales_opt else []
+        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=formales, tipo=p.TYPEID, cuerpo=p.expresiones)
 
     @_('OBJECTID ":" TYPEID')
     def formal(self, p):
@@ -183,7 +183,8 @@ class CoolParser(Parser):
     def expresion(self, p):
         return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
 
-    @_('OBJECTID ":" TYPEID DARROW expresion', 'OBJECTID ":" TYPEID DARROW expresion expr_rep2')
+    @_('OBJECTID ":" TYPEID DARROW expresion',
+       'OBJECTID ":" TYPEID DARROW expresion expr_rep2')
     def expr_rep2(self, p):
         if len(p) == 5:
             return Asignacion(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)
