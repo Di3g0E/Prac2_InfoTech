@@ -71,86 +71,86 @@ class CoolParser(Parser):
         else:
             return []
 
-    @_('formales "," formal')
+    @_('OBJECTID "(" ")" ":" TYPEID "{" expresion "}" ";"')
+    def metodo(self, p):
+        return Metodo(nombre=p.OBJECTID, formales=[], tipo=p.TYPEID, cuerpo=p.expresion)
+
+    @_('OBJECTID "(" formales formal ")" ":" TYPEID "{" expresion "}" ";"')
+    def metodo(self, p):
+        return Metodo(nombre=p.OBJECTID, formales=p.formales+[p.formal], tipo=p.TYPEID, cuerpo=p.expresion)
+
+    @_('formales formal ","')
     def formales(self, p):
         return p.formales + [p.formal]
 
-    @_('formal')
+    @_(' ')
     def formales(self, p):
-        return [p.formal]
-
-    @_('OBJECTID "(" formales ")" ":" TYPEID "{" expresion "}" ";"')
-    def metodo(self, p):
-        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=p.formales, tipo=p.TYPEID, cuerpo=p.expresiones)
-
-    @_('OBJECTID "(" ")" ":" TYPEID "{" expresion "}" ";"')
-    def metodo(self, p):
-        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=[], tipo=p.TYPEID, cuerpo=p.expresiones)
+        return []
 
     @_('OBJECTID ":" TYPEID')
     def formal(self, p):
-        return Formal(linea=p.lineno, nombre_variable=p.OBJECTID, tipo=p.TYPEID)
-
-    @_('expresion')
-    def expresiones(self, p):
-        return [p.expresion]
-
-    @_('expresion "," expresiones',
-       'expresion ";"')
-    def expresiones(self, p):
-        return [p.expresion] if len(p) == 2 else [p.expresion] + p.expresiones
+        return Formal(nombre_variable=p.OBJECTID, tipo=p.TYPEID)
 
     @_('expresion "+" expresion',
        'expresion "-" expresion',
        'expresion "*" expresion',
        'expresion "/" expresion',
-       '"~" expresion',
-       'expresion LE expresion',
        'expresion "<" expresion',
+       'expresion LE expresion',
        'expresion "=" expresion',
-       '"(" expresion ")"')
+       '"(" expresion ")"',
+       '"~" expresion')
     def expresion(self, p):
         if p[1] == '+':
-            return Suma(p.expresion, p.expresion)
+            return Suma(izquierda=p.expresion0, derecha=p.expresion1, operando='+')
         elif p[1] == '-':
-            return Resta(p.expresion, p.expresion)
+            return Resta(izquierda=p.expresion0, derecha=p.expresion1, operando='-')
         elif p[1] == '*':
-            return Multiplicacion(p.expresion, p.expresion)
+            return Multiplicacion(izquierda=p.expresion0, derecha=p.expresion1, operando='*')
         elif p[1] == '/':
-            return Division(p.expresion, p.expresion)
-        elif p[1] == '~':
-            return Neg(p.expresion)
-        elif p[1] == 'LE':
-            return LeIgual(p.expresion, p.expresion)
+            return Division(izquierda=p.expresion0, derecha=p.expresion1, operando='/')
         elif p[1] == '<':
-            return Menor(p.expresion, p.expresion)
+            return Menor(izquierda=p.expresion0, derecha=p.expresion1, operando='<')
+        elif p[1] == 'LE':
+            return LeIgual(izquierda=p.expresion0, derecha=p.expresion1, operando='<=')
         elif p[1] == '=':
-            return Igual(p.expresion, p.expresion)
-        elif p[1] == '(':
-            return p.expresion
+            return Igual(izquierda=p.expresion0, derecha=p.expresion1, operando='=')
+        elif p[0] == '(' and p[2] == ')':
+            pass
+        elif p[0] == '~':
+            return Neg(expr=p.expresion, operador='~')
 
     @_('expresion "@" TYPEID "." OBJECTID "(" ")"')
     def expresion(self, p):
         return LlamadaMetodoEstatico(cuerpo=p.expresion, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=[])
 
-    @_('expresion "@" TYPEID "." OBJECTID "(" expresiones ")"')
-    def expresion(self, p):
-        return LlamadaMetodoEstatico(cuerpo=p.expresion, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=p.expresiones)
+    @_('expresiones expresion ","')
+    def expresiones(self, p):
+        return p.expresiones + [p.expresion]
 
-    @_('expresion "."', ' ')
-    def expr_opc1(self, p):
-        if len(p) == 2:
-            return p.expreion
-        else:
-            return []
+    @_(' ')
+    def expresiones(self, p):
+        return []
 
-    @_('expr_opc1 OBJECTID "(" ")"')
+    @_('expresion "@" TYPEID "." OBJECTID "(" expresiones expresion ")"')
     def expresion(self, p):
-        return LlamadaMetodoEstatico(cuerpo=p.expr_opc1, clase=p.OBJECTID, nombre_metodo=p.OBJECTID, argumentos=[])
+        return LlamadaMetodoEstatico(cuerpo=p.expresion0, clase=p.TYPEID, nombre_metodo=p.OBJECTID, argumentos=p.expresiones+[p.expresion1])
 
-    @_('expr_opc1 OBJECTID "(" expresiones ")"')
+    @_('OBJECTID "(" expresiones expresion ")"')
     def expresion(self, p):
-        return LlamadaMetodoEstatico(cuerpo=p.expr_opc1, clase=p.OBJECTID, nombre_metodo=p.OBJECTID, argumentos=p.expresiones)
+        return LlamadaMetodo(cuerpo=NoExpr(), nombre_metodo=p.OBJECTID, argumentos=p.expresiones+[p.expresion])
+
+    @_('expresion "." OBJECTID "(" expresiones expresion ")"')
+    def expresion(self, p):
+        return LlamadaMetodo(cuerpo=p.expresion0, nombre_metodo=p.OBJECTID, argumentos=p.expresiones+[p.expresion1])
+
+    @_('OBJECTID "(" ")"')
+    def expresion(self, p):
+        return LlamadaMetodo(cuerpo=NoExpr(), nombre_metodo=p.OBJECTID, argumentos=NoExpr())
+
+    @_('expresion "." OBJECTID "(" ")"')
+    def expresion(self, p):
+        return LlamadaMetodo(cuerpo=p.expresion, nombre_metodo=p.OBJECTID, argumentos=NoExpr())
 
     @_('IF expresion THEN expresion ELSE expresion FI')
     def expresion(self, p):
@@ -160,68 +160,77 @@ class CoolParser(Parser):
     def expresion(self, p):
         return Bucle(condicion=p.expresion0, cuerpo=p.expresion1)
 
-    @_('ASSIGN expresion', ' ')
-    def assign_expr(self, p):
-        if len(p) == 2:
-            return [p.expresion]
-        else:
-            return []
+    @_(' ')
+    def let_rep(self, p):
+        pass
 
-    @_('OBJECTID ":" TYPEID assign_expr', 'OBJECTID ":" TYPEID assign_expr "," rep_let', ' ')
-    def rep_let(self, p):
-        if len(p) == 4:
-            return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.assign_expr)
-        elif len(p) > 4:
-            return Let(nombre=p.OBJETID, tipo=p.TYPEID, inicializacion=p.assign_expr, cuerpo=p.rep_let)
-        else:
-            return []
+    @_('OBJECTID ":" TYPEID')
+    def let_rep(self, p):
+        pass
 
-    @_('LET OBJECTID ":" TYPEID assign_expr rep_let IN expresion')
+    @_('OBJECTID ":" TYPEID ASSIGN expresion')
+    def let_rep(self, p):
+        pass
+
+    @_('let_rep OBJECTID ":" TYPEID ","')
+    def let_rep(self, p):
+        pass
+
+    @_('let_rep OBJECTID ":" TYPEID ASSIGN expresion ","')
+    def let_rep(self, p):
+        pass
+
+    @_('LET OBJECTID ":" TYPEID let_rep IN expresion')
     def expresion(self, p):
-        return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
+        pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
 
-    @_('OBJECTID ":" TYPEID DARROW expresion',
-       'OBJECTID ":" TYPEID DARROW expresion expr_rep2')
-    def expr_rep2(self, p):
-        if len(p) == 5:
-            return Asignacion(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)
-        else:
-            return Asignacion(nombre=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion, expr_rep2=p.expr_rep2)
-
-    @_('CASE expresion OF "(" expr_rep2 ")" ";" ESAC')
+    @_('LET OBJECTID ":" TYPEID ASSIGN expresion let_rep IN expresion')
     def expresion(self, p):
-        return Swicht(expr=p.expresion, casos=p.expr_rep2)
+        pass #return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
 
-    @_('expresion ";"', 'expresion ";" expr_rep3')
-    def expr_rep3(self, p):
-        if len(p) == 2:
-            return p.expresion
-        else:
-            return [p.expresion] + p.expr_rep3
+    @_('OBJECTID ":" TYPEID DARROW expresion')
+    def case_rep(self, p):
+        return RamaCase(nombre_variable=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)
 
-    @_('"{" expr_rep3 "}"')
+    @_('case_rep OBJECTID ":" TYPEID DARROW expresion')
+    def case_rep(self, p):
+        return p.case_rep + [RamaCase(nombre_variable=p.OBJECTID, tipo=p.TYPEID, cuerpo=p.expresion)]
+
+    @_('CASE expresion OF case_rep ";" ESAC')
     def expresion(self, p):
-        return Bloque(expresiones=p.expr_rep3)
+        return Swicht(expr=p.expresion, casos=p.case_rep)
 
-    @_('OBJECTID',
-       'INT_CONST',
-       'BOOL_CONST',
-       'STR_CONST',
-       'NEW TYPEID',
+    @_(' ')
+    def llaves_rep(self, p):
+        return []
+
+    @_('llaves_rep expresion ";"')
+    def llaves_rep(self, p):
+        return Bloque(expresiones=p.llaves_rep+[p.expresion])
+
+    @_('"{" llaves_rep expresion ";" "}"')
+    def expresion(self, p):
+        return Bloque(expresiones=p.llaves_rep+[p.expresion])
+
+    @_('NOT expresion',
        'ISVOID expresion',
-       'NOT expresion')
+       'NEW TYPEID',
+       'OBJECTID',
+       'INT_CONST',
+       'STR_CONST',
+       'BOOL_CONST')
     def expresion(self, p):
-        if p[0] == 'OBJECTID':
-            return Objeto(nombre=p.OBJECTID)
-        elif p[0] == 'INT_CONST':
-            return Entero(valor=p[0])
-        elif p[0] == 'BOOL_CONST':
-            return Booleano(valor=p[0])
-        elif p[0] == 'STR_CONST':
-            return String(valor=p[0])
-        elif p[0] == 'NEW':
-            return Nueva(tipo=p.TYPEID)
+        if p[0] == 'NOT':
+            return Not(expr=p.expresion, operador='NOT')
         elif p[0] == 'ISVOID':
             return EsNulo(expr=p.expresion)
-        elif p[0] == 'NOT':
-            return Not(expr=p.expresion)
+        elif p[0] == 'NEW':
+            return Nueva(tipo=p.TYPEID)
+        elif p[0] == 'OBJECTID':
+            return Objeto(nombre=p.OBJECTID)
+        elif p[0] == 'INT_CONST':
+            return Entero(valor=p.INT_CONST)
+        elif p[0] == 'STR_CONST':
+            return String(valor=p.STR_CONST)
+        elif p[0] == 'BOOL_CONST':
+            return Booleano(valor=p.BOOL_CONST)
