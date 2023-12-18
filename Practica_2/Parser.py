@@ -71,7 +71,7 @@ class CoolParser(Parser):
         else:
             return []
 
-    @_('OBJECTID "(" formales_opt ")" ":" TYPEID "{" expresiones "}"')
+    @_('OBJECTID "(" formales_opt ")" ":" TYPEID "{" expresiones "}" ";"')
     def metodo(self, p):
         nombre = p.OBJECTID
         formales = p.formales_opt if p.formales_opt else []
