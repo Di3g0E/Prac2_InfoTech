@@ -12,11 +12,11 @@ class CoolParser(Parser):
     debugfile = "salida.out"
     errores = []
     precedence = (
-        ('nonassoc', '.'),
-        ('nonassoc', '@'),
-        ('left', 'ISVOID', '*', '/', '+', '-'),
+        ('right', 'ASSIGN'),
         ('nonassoc', 'LE', '<', '=', 'NOT'),
-        ('right', 'ASSIGN')
+        ('left', 'ISVOID', '*', '/', '+', '-'),
+        ('nonassoc', '@'),
+        ('nonassoc', '.')
     )
 
 
@@ -73,16 +73,18 @@ class CoolParser(Parser):
 
     @_('OBJECTID "(" formales_opt ")" ":" TYPEID "{" expresiones "}" ";"')
     def metodo(self, p):
-        nombre = p.OBJECTID
         formales = p.formales_opt if p.formales_opt else []
-        tipo = p.TYPEID
-        cuerpo = p.expresiones
-        return Metodo(linea=p.lineno, nombre=nombre, formales=formales, tipo=tipo, cuerpo=cuerpo)
+        return Metodo(linea=p.lineno, nombre=p.OBJECTID, formales=formales, tipo=p.TYPEID, cuerpo=p.expresiones)
 
-    @_('formal "," formales_opt',
-       'formal')
+    @_('formales_opt "," formal',
+       'formal', ' ')
     def formales_opt(self, p):
-        return [p.formal] if len(p) == 1 else [p.formal] + p.formales_opt
+        if len(p) == 3:
+            return p.formales_opt + p.formal
+        elif len(p) == 1:
+            return p.formal
+        else:
+            return None
 
     @_('OBJECTID ":" TYPEID')
     def formal(self, p):
@@ -161,26 +163,25 @@ class CoolParser(Parser):
     def expresion(self, p):
         return Bucle(condicion=p.expresion0, cuerpo=p.expresion1)
 
-
     @_('ASSIGN expresion', ' ')
-    def expr_opc2(self, p):
-        if p == ' ':
+    def assign_expr(self, p):
+        if len(p) == 2:
+            return [p.expresion]
+        else:
             return []
-        else:
-            return p.expreion
 
-    @_('expr_rep "," OBJECTID ":" TYPEID expr_opc2', 'OBJECTID ":" TYPEID expr_opc2', ' ')
-    def expr_rep(self, p):
-        if len(p) == 1:
-            return Expresion(cast=p.TYPEID, nombre=p.OBJECTID, cuerpo=p.expr_opc2)
-        elif len(p) == 2:
-            return p.expr_rep + [Expresion(cast=p.TYPEID, nombre=p.OBJECTID, cuerpo=p.expr_opc2)]
+    @_('OBJECTID ":" TYPEID assign_expr', 'OBJECTID ":" TYPEID assign_expr "," rep_let', ' ')
+    def rep_let(self, p):
+        if len(p) == 4:
+            return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.assign_expr)
+        elif len(p) > 4:
+            return Let(nombre=p.OBJETID, tipo=p.TYPEID, inicializacion=p.assign_expr, cuerpo=p.rep_let)
         else:
-            return NoExpr(cast='_no_type')
+            return []
 
-    @_('LET OBJECTID ":" TYPEID expr_opc2 expr_rep IN expresion')
+    @_('LET OBJECTID ":" TYPEID assign_expr rep_let IN expresion')
     def expresion(self, p):
-        return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.expr_opc2, cuerpo=p.expresion)
+        return Let(nombre=p.OBJECTID, tipo=p.TYPEID, inicializacion=p.rep_let, cuerpo=p.expresion)
 
     @_('OBJECTID ":" TYPEID DARROW expresion', 'OBJECTID ":" TYPEID DARROW expresion expr_rep2')
     def expr_rep2(self, p):
@@ -213,16 +214,16 @@ class CoolParser(Parser):
        'NOT expresion')
     def expresion(self, p):
         if p[0] == 'OBJECTID':
-            pass
+            return Objeto(nombre=p.OBJECTID)
         elif p[0] == 'INT_CONST':
-            return Entero(p[0])
+            return Entero(valor=p[0])
         elif p[0] == 'BOOL_CONST':
-            return Booleano(p[0])
+            return Booleano(valor=p[0])
         elif p[0] == 'STR_CONST':
-            return String(p[0])
+            return String(valor=p[0])
         elif p[0] == 'NEW':
-            return Nueva(p.TYPEID)
+            return Nueva(tipo=p.TYPEID)
         elif p[0] == 'ISVOID':
-            return EsNulo(p.expresion)
+            return EsNulo(expr=p.expresion)
         elif p[0] == 'NOT':
-            return Not(p.expresion)
+            return Not(expr=p.expresion)
